@@ -2,17 +2,19 @@
 import os
 import sys
 
+
 class queryPro:
     def __init__(self, file_name, query, fieldsOrCommands) -> None:
         self.file_name = file_name
         self.query = query
-        self.fieldsOrCommands = False if "SHOWALL" in fieldsOrCommands else fieldsOrCommands
+        self.fieldsOrCommands = fieldsOrCommands+[False] if "SHOWALL" in fieldsOrCommands else fieldsOrCommands
         self.successed = list()
         self.general_counter = 0
         self.matches_counter = 0
 
     def toFilter(self) -> list:
-        filterStore = {i.split(".in.")[1].upper(): i.split(".in.")[0] for i in self.query.split(".and.")}
+        filterStore = {i.split(".in.")[1].upper(): i.split(
+            ".in.")[0] for i in self.query.split(".and.")}
         return filterStore
 
     def Commands(self) -> None:
@@ -21,16 +23,16 @@ class queryPro:
         both = 0
         for i in self.fieldsOrCommands:
             if i == "COUNTALL":
-              both+=1
-              print(self.general_counter)
+                both += 1
+                print(self.general_counter)
             elif i == "COUNT":
-              print(self.matches_counter)
-              both+=1
+                print(self.matches_counter)
+                both += 1
             elif i == "TAXONS":
                 pass
         if both == 2:
-          print (self.matches_counter/self.general_counter,"%")
-              
+            print(self.matches_counter/self.general_counter, "%")
+
         return None
 
     def start_search(self) -> None:
@@ -47,12 +49,14 @@ class queryPro:
                 # FIN DEL RECORRIDO
                 if not (line):
                     # Check if the user entered commands
-                    if any(stdin in ["COUNTALL", "COUNT"] for stdin in self.fieldsOrCommands):
-                        self.Commands()
+                    if self.fieldsOrCommands: 
+                        if any(stdin in ["COUNTALL", "COUNT"] for stdin in self.fieldsOrCommands):
+                            self.Commands()
                     break
 
                 # tomamos todos las palabras de la linea
                 to_look = [i.strip() for i in line.split(" ") if i]
+                print (to_look)
 
                 # FINAL DE UN REGISTRO
                 if "//" in to_look:
@@ -61,15 +65,17 @@ class queryPro:
                     # si se ha vaciado el diccionario imprimimos y borramos
                     if not (filterFields_forRecord):
                         self.matches_counter += 1
-                        print(self.successed)
+                        #print (*self.successed)
                     self.successed.clear()
-                      
+                    if self.general_counter == 2:
+                        break
+                    
                     # renovamos variables de movimiento y de control
                     filterFields_forRecord = filterFields.copy()
                     continue
 
                 # vamos agregando los campos que el usuario eligio ver. si no eliguió se agregan todos
-                if not (self.fieldsOrCommands):
+                if not (all (self.fieldsOrCommands)):
                     self.successed.append(line)
                 elif to_look[0] in self.fieldsOrCommands:
                     self.successed.append(line)
@@ -100,7 +106,7 @@ if __name__ == "__main__":
 
     try:
         query = sys.argv[2]
-        fieldsOrCommands = sys.argv[3:] if sys.argv[3:] else False
+        fieldsOrCommands = sys.argv[3:] if sys.argv[3:] else ["SHOWALL"]
     except:
         print("Query is required")
         quit()
