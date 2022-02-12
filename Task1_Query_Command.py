@@ -1,4 +1,5 @@
 # Empezamos con los argumentos que se reciben
+from curses import start_color
 import os
 import sys
 
@@ -7,10 +8,12 @@ class queryPro:
     def __init__(self, file_name, query, fieldsOrCommands) -> None:
         self.file_name = file_name
         self.query = query
-        self.fieldsOrCommands = fieldsOrCommands+[False] if "SHOWALL" in fieldsOrCommands else fieldsOrCommands
+        self.fieldsOrCommands = fieldsOrCommands + \
+            [False] if "SHOWALL" in fieldsOrCommands else fieldsOrCommands
         self.successed = list()
         self.general_counter = 0
         self.matches_counter = 0
+        self.taxones = {}
 
     def toFilter(self) -> list:
         filterStore = {i.split(".in.")[1].upper(): i.split(
@@ -29,64 +32,82 @@ class queryPro:
                 print(self.matches_counter)
                 both += 1
             elif i == "TAXONS":
-                pass
+                print(self.taxones)
         if both == 2:
             print(self.matches_counter/self.general_counter, "%")
-
         return None
 
     def start_search(self) -> None:
+
         with open(file_name, "r") as file:
             filterFields = self.toFilter()
-            # una copia como control cuando termine de matchear
-            filterFields_forRecord = filterFields.copy()
-            print("FILTER, FIELDS/COMMANDS", filterFields)
+
+            # VARIABLE CONTROL
+            filterFields_count = len(filterFields)
+            print("FILTER, FIELDS/COMMANDS",
+                    filterFields, self.fieldsOrCommands)
+
             while True:
-
-                # renovamos variable para tomar la siguiente linea en el archivo
+                # con el ciclo while la variable linea toma una nueva linea cada ciclo
                 line = file.readline()
-
+                to_look = line.split(" ")
+                
+                # a las secuencias les agregamos el SQ para poder filtrarlas cuando se quiera
+                if line.startswith(" "):
+                    to_look[0]= "SQ"
+                
+                # inicio de la linea
+                start_of_line= to_look[0]
+                
                 # FIN DEL RECORRIDO
                 if not (line):
                     # Check if the user entered commands
-                    if self.fieldsOrCommands: 
-                        if any(stdin in ["COUNTALL", "COUNT"] for stdin in self.fieldsOrCommands):
-                            self.Commands()
+                    if any(stdin in ["COUNTALL", "COUNT", "TAXONS"] for stdin in self.fieldsOrCommands):
+                        self.Commands()
                     break
 
-                # tomamos todos las palabras de la linea
-                to_look = [i.strip() for i in line.split(" ") if i]
-                print (to_look)
-
                 # FINAL DE UN REGISTRO
-                if "//" in to_look:
+                if line.startswith("//"):
                     self.general_counter += 1
 
                     # si se ha vaciado el diccionario imprimimos y borramos
-                    if not (filterFields_forRecord):
+                    if not (filterFields_count):
                         self.matches_counter += 1
-                        #print (*self.successed)
+                        print(*self.successed)
+
                     self.successed.clear()
-                    if self.general_counter == 2:
-                        break
-                    
+                    #if self.general_counter == 2:
+                    #    break
+
                     # renovamos variables de movimiento y de control
-                    filterFields_forRecord = filterFields.copy()
+                    filterFields_count = len(filterFields)
                     continue
 
+                # ¿la linea hace parte de la campos filtro?
+                if start_of_line in filterFields:
+                    if filterFields[to_look[0]] in to_look:
+                        # eliminamos una unidad a la variable control
+                        # a medida que hacen match
+                        filterFields_count -= 1
+
                 # vamos agregando los campos que el usuario eligio ver. si no eliguió se agregan todos
-                if not (all (self.fieldsOrCommands)):
-                    self.successed.append(line)
-                elif to_look[0] in self.fieldsOrCommands:
-                    self.successed.append(line)
+                # si TAXONS esta entre los comandos se saca el total de OC
+                if "TAXONS" in self.fieldsOrCommands:
+                    if line.startswith("OC"):
+                        to_look = [i.strip() for i in to_look if i]
+                        for i in to_look[1:]:
+                            if i in self.taxones:
+                                self.taxones[i]+= 1
+                            else:
+                                self.taxones[i]= 1
+                    continue
 
-                try:
-                    if filterFields_forRecord[to_look[0]] in to_look:
-                        # limpiamos del fieldsOrCommands los campos a medida que hacen match que servira como control
-                        del filterFields_forRecord[to_look[0]]
-                except:
-                    pass
-
+                # Si hay campos para mostrar los agregamos
+                # sino  agregamos todos los campos
+                if not (self.fieldsOrCommands[-1]):
+                    self.successed.append(line)
+                elif start_of_line in self.fieldsOrCommands:
+                    self.successed.append(line)
             return None
 
 
