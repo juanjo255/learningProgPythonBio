@@ -88,7 +88,8 @@ class queryPro:
 
                 # ¿la linea hace parte de la campos filtro?
                 if start_of_line in filterFields:
-                    if filterFields[start_of_line] in (i for i in line.split(" ")):
+                    #print (filterFields[start_of_line], type(line))
+                    if filterFields[start_of_line] in line:
                         # eliminamos una unidad a la variable control a medida que hacen match
                         filterFields_count -= 1
 
