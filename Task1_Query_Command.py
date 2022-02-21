@@ -3,7 +3,7 @@ from curses import start_color
 import os
 import sys
 
-
+#POSDATA: DEBO ARREGLAR QUE CUANDO SE PONEN COMANDOS SIN CAMPOS NO MUESTRA TODOS LOS CAMPOS, SOLO CUANDO SE INGRESA SHOWALL
 class queryPro:
     def __init__(self, file_name, query, fieldsOrCommands) -> None:
         self.file_name = file_name
@@ -50,14 +50,17 @@ class queryPro:
             while True:
                 # con el ciclo while la variable linea toma una nueva linea cada ciclo
                 line = file.readline()
-                to_look = line.split(" ")
+                #to_look = line.split(" ")
                 
                 # a las secuencias les agregamos el SQ para poder filtrarlas cuando se quiera
                 if line.startswith(" "):
-                    to_look[0]= "SQ"
+                    #to_look[0]= "SQ"
+                    line= "SQ" + line
+                    #print (line)
                 
                 # inicio de la linea
-                start_of_line= to_look[0]
+                start_of_line= line[0:2]
+                #print (start_of_line)
                 
                 # FIN DEL RECORRIDO
                 if not (line):
@@ -85,29 +88,29 @@ class queryPro:
 
                 # ¿la linea hace parte de la campos filtro?
                 if start_of_line in filterFields:
-                    if filterFields[to_look[0]] in to_look:
-                        # eliminamos una unidad a la variable control
-                        # a medida que hacen match
+                    if filterFields[start_of_line] in (i for i in line.split(" ")):
+                        # eliminamos una unidad a la variable control a medida que hacen match
                         filterFields_count -= 1
 
                 # vamos agregando los campos que el usuario eligio ver. si no eliguió se agregan todos
                 # si TAXONS esta entre los comandos se saca el total de OC
                 if "TAXONS" in self.fieldsOrCommands:
                     if line.startswith("OC"):
-                        to_look = [i.strip() for i in to_look if i]
+                        to_look = [i.strip() for i in line.split(" ") if i]
                         for i in to_look[1:]:
                             if i in self.taxones:
                                 self.taxones[i]+= 1
                             else:
                                 self.taxones[i]= 1
-                    continue
-
-                # Si hay campos para mostrar los agregamos
-                # sino  agregamos todos los campos
-                if not (self.fieldsOrCommands[-1]):
-                    self.successed.append(line)
-                elif start_of_line in self.fieldsOrCommands:
-                    self.successed.append(line)
+                elif "FASTA" in self.fieldsOrCommands:
+                    pass
+                else:    
+                    # Si hay campos para mostrar los agregamos
+                    # sino  agregamos todos los campos
+                    if not (self.fieldsOrCommands[-1]):
+                        self.successed.append(line)
+                    elif start_of_line in self.fieldsOrCommands:
+                        self.successed.append(line)
             return None
 
 
