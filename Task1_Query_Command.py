@@ -1,9 +1,13 @@
 # Empezamos con los argumentos que se reciben
 from curses import start_color
 import os
+from re import S
 import sys
+from traceback import print_tb
 
-#POSDATA: DEBO ARREGLAR QUE CUANDO SE PONEN COMANDOS SIN CAMPOS NO MUESTRA TODOS LOS CAMPOS, SOLO CUANDO SE INGRESA SHOWALL
+# POSDATA: DEBO ARREGLAR QUE CUANDO SE PONEN COMANDOS SIN CAMPOS NO MUESTRA TODOS LOS CAMPOS, SOLO CUANDO SE INGRESA SHOWALL
+
+
 class queryPro:
     def __init__(self, file_name, query, fieldsOrCommands) -> None:
         self.file_name = file_name
@@ -43,25 +47,22 @@ class queryPro:
             filterFields = self.toFilter()
 
             # VARIABLE CONTROL
-            filterFields_count = len(filterFields)
+            filterFields_copy = filterFields.copy()
             print("FILTER, FIELDS/COMMANDS",
-                    filterFields, self.fieldsOrCommands)
+                  filterFields, self.fieldsOrCommands)
 
             while True:
                 # con el ciclo while la variable linea toma una nueva linea cada ciclo
                 line = file.readline()
-                #to_look = line.split(" ")
-                
+
                 # a las secuencias les agregamos el SQ para poder filtrarlas cuando se quiera
                 if line.startswith(" "):
-                    #to_look[0]= "SQ"
-                    line= "SQ" + line
-                    #print (line)
-                
+                    line = "SQ" + line
+
                 # inicio de la linea
-                start_of_line= line[0:2]
+                start_of_line = line[0:2]
                 #print (start_of_line)
-                
+
                 # FIN DEL RECORRIDO
                 if not (line):
                     # Check if the user entered commands
@@ -74,24 +75,26 @@ class queryPro:
                     self.general_counter += 1
 
                     # si se ha vaciado el diccionario imprimimos y borramos
-                    if not (filterFields_count):
+                    if not (filterFields_copy):
+                        #print ("por aqui paso uno")
                         self.matches_counter += 1
-                        print(*self.successed)
-
+                        if self.successed:
+                            print(*self.successed)
                     self.successed.clear()
-                    #if self.general_counter == 2:
-                    #    break
+
+                    # if self.matches_counter == 2:
+                    #   break
 
                     # renovamos variables de movimiento y de control
-                    filterFields_count = len(filterFields)
+                    filterFields_copy = filterFields.copy()
                     continue
 
                 # ¿la linea hace parte de la campos filtro?
-                if start_of_line in filterFields:
-                    #print (filterFields[start_of_line], type(line))
-                    if filterFields[start_of_line] in line:
-                        # eliminamos una unidad a la variable control a medida que hacen match
-                        filterFields_count -= 1
+                if start_of_line in filterFields_copy:
+                    if filterFields_copy[start_of_line] in line:
+                        #print (filterFields[start_of_line], line)
+                        # eliminamos el campo de busqueda de la variable control a medida que hacen match
+                        del filterFields_copy[start_of_line]
 
                 # vamos agregando los campos que el usuario eligio ver. si no eliguió se agregan todos
                 # si TAXONS esta entre los comandos se saca el total de OC
@@ -100,12 +103,12 @@ class queryPro:
                         to_look = [i.strip() for i in line.split(" ") if i]
                         for i in to_look[1:]:
                             if i in self.taxones:
-                                self.taxones[i]+= 1
+                                self.taxones[i] += 1
                             else:
-                                self.taxones[i]= 1
+                                self.taxones[i] = 1
                 elif "FASTA" in self.fieldsOrCommands:
                     pass
-                else:    
+                else:
                     # Si hay campos para mostrar los agregamos
                     # sino  agregamos todos los campos
                     if not (self.fieldsOrCommands[-1]):
