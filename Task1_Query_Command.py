@@ -49,7 +49,7 @@ class queryPro:
             # VARIABLE CONTROL
             filterFields_copy = filterFields.copy()
             print("FILTER, FIELDS/COMMANDS",
-                  filterFields, self.fieldsOrCommands)
+                    filterFields, self.fieldsOrCommands)
 
             while True:
                 # con el ciclo while la variable linea toma una nueva linea cada ciclo
@@ -60,7 +60,7 @@ class queryPro:
                     line = "SQ" + line
 
                 # inicio de la linea
-                start_of_line = line[0:2]
+                start_of_line = line[:2]
                 #print (start_of_line)
 
                 # FIN DEL RECORRIDO
