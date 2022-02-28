@@ -70,7 +70,14 @@ class queryPro:
                     if not (filterFields_copy):
                         self.matches_counter += 1
                         if "TAXONS" in self.fieldsOrCommands:
-                            print (self.successed)
+                            #print (self.successed)
+                            for OC in self.successed:
+                                OC = [i for i in OC.strip().split(" ")[1:] if i]
+                                for val in OC:
+                                    if val in self.taxones:
+                                        self.taxones[val] += 1
+                                    else:
+                                        self.taxones[val] = 1
                         elif self.successed:
                             print(*self.successed)
                             
