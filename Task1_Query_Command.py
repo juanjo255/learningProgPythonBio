@@ -30,7 +30,7 @@ class queryPro:
             elif i == "TAXONS":
                 print(self.taxones)
         if both == 2:
-            print(self.matches_counter/self.general_counter, "%")
+            print(self.matches_counter/self.general_counter*100, "%")
         return None
 
     def fasta (self) -> None:
