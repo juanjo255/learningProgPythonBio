@@ -1,13 +1,5 @@
-# Empezamos con los argumentos que se reciben
-from curses import start_color
 import os
-from re import S
 import sys
-from traceback import print_tb
-
-# POSDATA: DEBO ARREGLAR QUE CUANDO SE PONEN COMANDOS SIN CAMPOS NO MUESTRA TODOS LOS CAMPOS, SOLO CUANDO SE INGRESA SHOWALL
-
-
 class queryPro:
     def __init__(self, file_name, query, fieldsOrCommands) -> None:
         self.file_name = file_name
@@ -24,7 +16,7 @@ class queryPro:
             ".in.")[0] for i in self.query.split(".and.")}
         return filterStore
 
-    def Commands(self) -> None:
+    def printCommands(self) -> None:
         # Miramos si el usurio ingreso comandos o campos. Si ingresó comandos
         # pasa un filtro para las posibilidades que hay para es filtro
         both = 0
@@ -61,25 +53,27 @@ class queryPro:
 
                 # inicio de la linea
                 start_of_line = line[:2]
-                #print (start_of_line)
 
                 # FIN DEL RECORRIDO
                 if not (line):
                     # Check if the user entered commands
                     if any(stdin in ["COUNTALL", "COUNT", "TAXONS"] for stdin in self.fieldsOrCommands):
-                        self.Commands()
+                        self.printCommands()
                     break
 
                 # FINAL DE UN REGISTRO
                 if line.startswith("//"):
                     self.general_counter += 1
-
-                    # si se ha vaciado el diccionario imprimimos y borramos
+                    
+                    # si se ha vaciado el diccionario
+                    # entonces pasa a lo demas
                     if not (filterFields_copy):
-                        #print ("por aqui paso uno")
                         self.matches_counter += 1
-                        if self.successed:
+                        if "TAXONS" in self.fieldsOrCommands:
+                            print (self.successed)
+                        elif self.successed:
                             print(*self.successed)
+                            
                     self.successed.clear()
 
                     # if self.matches_counter == 2:
@@ -89,23 +83,16 @@ class queryPro:
                     filterFields_copy = filterFields.copy()
                     continue
 
-                # ¿la linea hace parte de la campos filtro?
+                # ¿el amcabezado hace parte de los campos filtro?
                 if start_of_line in filterFields_copy:
                     if filterFields_copy[start_of_line] in line:
-                        #print (filterFields[start_of_line], line)
                         # eliminamos el campo de busqueda de la variable control a medida que hacen match
                         del filterFields_copy[start_of_line]
 
                 # vamos agregando los campos que el usuario eligio ver. si no eliguió se agregan todos
                 # si TAXONS esta entre los comandos se saca el total de OC
-                if "TAXONS" in self.fieldsOrCommands:
-                    if line.startswith("OC"):
-                        to_look = [i.strip() for i in line.split(" ") if i]
-                        for i in to_look[1:]:
-                            if i in self.taxones:
-                                self.taxones[i] += 1
-                            else:
-                                self.taxones[i] = 1
+                if "TAXONS" in self.fieldsOrCommands and line.startswith("OC"):
+                    self.successed.append(line)
                 elif "FASTA" in self.fieldsOrCommands:
                     pass
                 else:
@@ -117,9 +104,7 @@ class queryPro:
                         self.successed.append(line)
             return None
 
-
 if __name__ == "__main__":
-
     try:
         file_name = sys.argv[1]
     except:
