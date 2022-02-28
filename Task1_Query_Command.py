@@ -33,6 +33,29 @@ class queryPro:
             print(self.matches_counter/self.general_counter, "%")
         return None
 
+    def fasta (self) -> None:
+        header= self.successed [:3]
+        seq= self.successed [4:]
+        final_seq = ""
+        # recorremos encabezado de fasta, pulimos e imprimimos
+        for line in header:
+            line = line.strip()
+            if line.startswith("ID"):
+                line_split=[ i for i in line.split(" ") if i]
+                line= " ".join(line_split[:2])
+            print (line[:2], line [2:].strip(),sep="=", end=";")
+        print ("")
+        
+        #recorremos secuencias, limitamos a 80 caracteres e imprimimos
+        for line in seq:
+            line= line[2:].strip().split(" ")
+            line = "".join(line)
+            final_seq += line
+
+        for i in range (0, len(final_seq),80):
+            print (final_seq [i:80+i])
+        return None
+
     def start_search(self) -> None:
 
         with open(file_name, "r") as file:
@@ -57,7 +80,9 @@ class queryPro:
                 # FIN DEL RECORRIDO
                 if not (line):
                     # Check if the user entered commands
-                    if any(stdin in ["COUNTALL", "COUNT", "TAXONS"] for stdin in self.fieldsOrCommands):
+                    if "FASTA" in self.fieldsOrCommands:
+                        pass
+                    elif any(stdin in ["COUNTALL", "COUNT", "TAXONS"] for stdin in self.fieldsOrCommands):
                         self.printCommands()
                     break
 
@@ -70,14 +95,14 @@ class queryPro:
                     if not (filterFields_copy):
                         self.matches_counter += 1
                         if "TAXONS" in self.fieldsOrCommands:
-                            #print (self.successed)
                             for OC in self.successed:
                                 OC = [i for i in OC.strip().split(" ")[1:] if i]
                                 for val in OC:
-                                    if val in self.taxones:
-                                        self.taxones[val] += 1
-                                    else:
-                                        self.taxones[val] = 1
+                                    if not (val in self.taxones):
+                                        self.taxones[val] = 0
+                                    self.taxones[val] += 1
+                        elif "FASTA" in self.fieldsOrCommands:
+                            self.fasta()
                         elif self.successed:
                             print(*self.successed)
                             
@@ -97,11 +122,9 @@ class queryPro:
                         del filterFields_copy[start_of_line]
 
                 # vamos agregando los campos que el usuario eligio ver. si no eliguió se agregan todos
-                # si TAXONS esta entre los comandos se saca el total de OC
+                # si TAXONS esta entre los comandos se saca el OC
                 if "TAXONS" in self.fieldsOrCommands and line.startswith("OC"):
                     self.successed.append(line)
-                elif "FASTA" in self.fieldsOrCommands:
-                    pass
                 else:
                     # Si hay campos para mostrar los agregamos
                     # sino  agregamos todos los campos
@@ -126,7 +149,14 @@ if __name__ == "__main__":
 
     try:
         query = sys.argv[2]
-        fieldsOrCommands = sys.argv[3:] if sys.argv[3:] else ["SHOWALL"]
+        fieldsOrCommands = sys.argv[3:]
+        if fieldsOrCommands:
+            if "FASTA" in fieldsOrCommands:
+                fieldsOrCommands = ["FASTA", "ID","AC","OS", "SQ"]
+            else:
+                fieldsOrCommands = sys.argv[3:]
+        else:
+            fieldsOrCommands = ["SHOWALL"]
     except:
         print("Query is required")
         quit()
