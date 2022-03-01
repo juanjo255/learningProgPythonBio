@@ -157,9 +157,9 @@ if __name__ == "__main__":
                 fieldsOrCommands = sys.argv[3:]
         else:
             fieldsOrCommands = ["SHOWALL"]
+        myQuery = queryPro(file_name, query, fieldsOrCommands)
+        myQuery.start_search()
     except:
         print("Query is required")
         quit()
 
-    myQuery = queryPro(file_name, query, fieldsOrCommands)
-    myQuery.start_search()
