@@ -30,7 +30,7 @@ class queryPro:
             elif i == "TAXONS":
                 print(self.taxones)
         if both == 2:
-            print(self.matches_counter/self.general_counter*100, "%")
+            print(round(self.matches_counter/self.general_counter*100, 3),"%")
         return None
 
     def fasta (self) -> None:
@@ -141,9 +141,7 @@ if __name__ == "__main__":
         print("File name is required")
         quit()
 
-    try:
-        os.path.isfile(sys.argv[1])
-    except:
+    if not (os.path.isfile(sys.argv[1])):
         print("The file does not exist")
         quit()
 
